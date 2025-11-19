@@ -8,9 +8,9 @@ from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import StaticPool
 
-from backend.app import app
-from backend.core.database import get_session
-from backend.models.models import User, table_registry
+from app import app
+from Backend.core.database import get_session
+from Backend.models.models import User, table_registry
 
 
 @pytest.fixture

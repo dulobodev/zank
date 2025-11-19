@@ -1,11 +1,16 @@
 import asyncio
+import sys
+import os
+
 from logging.config import fileConfig
 
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from backend.core.settings import Settings
-from backend.models.models import table_registry
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+from Backend.core.settings import Settings
+from Backend.models.models import table_registry
 from alembic import context
 
 # this is the Alembic Config object, which provides

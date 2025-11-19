@@ -1,7 +1,7 @@
 import uuid
 from http import HTTPStatus
 
-from backend.models.GastosSchema import GastosPublic
+from Backend.models.GastosSchema import GastosPublic
 
 
 def test_create_gasto(client, categoria, user, token_admin):

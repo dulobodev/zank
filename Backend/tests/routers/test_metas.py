@@ -1,7 +1,7 @@
 import uuid
 from http import HTTPStatus
 
-from backend.models.MetasSchemas import MetaPublic
+from Backend.models.MetasSchemas import MetaPublic
 
 
 def test_create_meta(client, user, token_admin):

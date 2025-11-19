@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from backend.models.UserSchema import UserPublic
+from Backend.models.UserSchema import UserPublic
 
 
 def test_create_user(client):

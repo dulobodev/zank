@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from backend.models.CategoriaSchema import CategoriaPublic
+from Backend.models.CategoriaSchema import CategoriaPublic
 
 
 def test_create_categoria(client, token_admin):

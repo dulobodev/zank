@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from jwt import decode
 
-from backend.middleware.security import create_access_token, settings
+from Backend.middleware.security import create_access_token, settings
 
 
 def test_jwt():

@@ -4,8 +4,8 @@ from datetime import date
 import factory
 import pytest_asyncio
 
-from backend.middleware.security import get_password_hash
-from backend.models.models import Categorias, Gastos, Metas, User
+from Backend.middleware.security import get_password_hash
+from Backend.models.models import Categorias, Gastos, Metas, User
 
 
 class UserFactory(factory.Factory):

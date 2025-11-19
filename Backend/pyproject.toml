@@ -29,7 +29,8 @@ dependencies = [
     "langgraph (>=1.0.1,<2.0.0)",
     "fastapi-profiler (>=1.4.1,<2.0.0)",
     "psycopg[binary] (>=3.2.12,<4.0.0)",
-    "langchain-openai (>=1.0.2,<2.0.0)"
+    "langchain-openai (>=1.0.2,<2.0.0)",
+    "stripe (>=14.0.0,<15.0.0)"
 ]
 
 
@@ -73,7 +74,7 @@ concurrency = ["thread", "greenlet"]
 lint = 'ruff check'
 pre_format = 'ruff check --fix'
 format = 'ruff format'
-run = 'fastapi dev backend/app.py'
+run = 'fastapi dev app.py'
 pre_test = 'task lint'
 test = 'pytest -s -x --cov=Backend -vv'
 post_test = 'coverage html'
