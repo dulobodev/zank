@@ -1,0 +1,15 @@
+.env
+.env.*
+__pycache__/
+*.pyc
+.git
+.vscode/
+.idea/
+venv/
+.venv/
+*.log
+.DS_Store
+tests/
+.pytest_cache/
+Backend/.env
+Backend/__pycache__/
