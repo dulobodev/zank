@@ -29,9 +29,6 @@ O sistema processa mensagens em linguagem natural, categorizando automaticamente
 - **JWT (PyJWT)** - Autenticação baseada em tokens
 - **Argon2 (pwdlib)** - Hash seguro de senhas
 
-### Pagamentos
-- **Stripe** - Integração para processamento de pagamentos e assinaturas
-
 ### Ferramentas de Desenvolvimento
 - **Poetry** - Gerenciamento de dependências Python
 - **Ruff** - Linter e formatador de código
