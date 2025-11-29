@@ -366,19 +366,10 @@ Backend/
 └── README.md          # Este arquivo
 ```
 
-## 🔐 Segurança
-
-- As senhas são hasheadas usando Argon2
-- Tokens JWT são usados para autenticação
-- Variáveis sensíveis devem estar no arquivo `.env` (não commitar no Git)
-- Rate limiting está configurado via slowapi
-- CORS está configurado para permitir apenas origens específicas
-
 ## 📝 Notas Importantes
 
 - O WAHA precisa de uma conexão ativa com o WhatsApp Web. Se a sessão cair, será necessário escanear o QR Code novamente.
 - Para produção, considere usar um serviço de túnel estável ou configurar um domínio próprio para os webhooks.
-- Mantenha o arquivo `.env` seguro e nunca o commite no repositório.
 - O banco de dados PostgreSQL deve estar acessível antes de iniciar a aplicação.
 
 ## 🤝 Contribuindo
