@@ -1,8 +1,8 @@
-# FinBot - Assistente Financeiro via WhatsApp
+# Zank - Assistente Financeiro via WhatsApp
 
 ## 📋 Sobre o Projeto
 
-O **FinBot** é um assistente financeiro inteligente desenvolvido para WhatsApp que ajuda usuários a gerenciar suas finanças pessoais de forma simples e intuitiva. Utilizando inteligência artificial para processar linguagem natural, o bot permite registrar gastos, criar e acompanhar metas financeiras, e consultar relatórios detalhados através de conversas simples no WhatsApp.
+O **Zank** é um assistente financeiro inteligente desenvolvido para WhatsApp que ajuda usuários a gerenciar suas finanças pessoais de forma simples e intuitiva. Utilizando inteligência artificial para processar linguagem natural, o bot permite registrar gastos, criar e acompanhar metas financeiras, e consultar relatórios detalhados através de conversas simples no WhatsApp.
 
 O sistema processa mensagens em linguagem natural, categorizando automaticamente os gastos e fornecendo respostas contextuais. Usuários podem interagir de forma natural, sem precisar memorizar comandos complexos.
 
@@ -387,10 +387,6 @@ Backend/
 ## 🤝 Contribuindo
 
 Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou pull requests.
-
-## 📄 Licença
-
-[Adicione informações sobre a licença aqui]
 
 ## 👤 Autor
 
