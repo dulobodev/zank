@@ -7,12 +7,15 @@ settings = Settings()
 
 
 class WhatsAppService:
+    """Serviço para envio de mensagens via WhatsApp usando WAHA."""
+    
     def __init__(self):
         self.base_url = settings.WAHA_BASE_URL
         self.api_key = settings.WAHA_API_KEY
         self.session = settings.WAHA_SESSION_NAME
 
     async def send_message(self, phone: str, text: str, session: str = None):
+        """Envia mensagem de texto via WhatsApp."""
         session_name = session or self.session
         chat_id = normalize_phone_to_whatsapp(phone)
 

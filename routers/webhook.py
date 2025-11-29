@@ -1,4 +1,3 @@
-# backend/routers/webhook.py
 import traceback
 import unicodedata
 
@@ -20,15 +19,7 @@ router = APIRouter(prefix='/webhook', tags=['webhook'])
 
 
 def remove_acentos(texto: str) -> str:
-    """
-    Remove acentos de texto para compatibilidade com LLM.
-
-    Args:
-        texto: Texto com acentos (ex: "almoço")
-
-    Returns:
-        Texto sem acentos (ex: "almoco")
-    """
+    """Remove acentos de texto para compatibilidade com LLM."""
     return (
         unicodedata.normalize('NFKD', texto)
         .encode('ASCII', 'ignore')
@@ -37,21 +28,12 @@ def remove_acentos(texto: str) -> str:
 
 
 async def process_and_reply(user_phone: str, message: str, session_name: str):
-    """
-    Processa mensagem e envia resposta.
-
-    Args:
-        user_phone: Telefone do usuário (pode ser LID ou número normal)
-        message: Mensagem recebida
-        session_name: Nome da sessão WAHA
-    """
-    # PRÉ-PROCESSAR: Remover acentos para o LLM processar
+    """Processa mensagem recebida e envia resposta via WhatsApp."""
     message_normalized = remove_acentos(message)
 
     try:
         mapping = get_mapping_service()
 
-        # Verifica se é LID e resolve para número real
         phone_to_send = user_phone
         if is_lid(user_phone):
             print(f'🔍 Detectado LID: {user_phone}')
@@ -63,9 +45,8 @@ async def process_and_reply(user_phone: str, message: str, session_name: str):
                 print(f'❌ Falha ao resolver LID: {user_phone}')
                 return
 
-        # Busca user_id usando o telefone original (pode ser LID)
         user_id = await mapping.get_user_id_by_phone(user_phone)
-        
+
         if not user_id:
             print('❌ Usuário não encontrado no banco')
             whatsapp = WhatsAppService()
@@ -79,7 +60,7 @@ async def process_and_reply(user_phone: str, message: str, session_name: str):
         print(f'✅ Usuário encontrado: {user_id}')
 
         user_data = await mapping.get_user(user_phone)
-        
+
         if not user_data:
             print('❌ Erro ao buscar dados completos do usuário')
             whatsapp = WhatsAppService()
@@ -89,29 +70,13 @@ async def process_and_reply(user_phone: str, message: str, session_name: str):
                 session=session_name,
             )
             return
-        
-        if user_data.get('access_denied', False):
-            print(f'🚫 Acesso negado para usuário {user_data["username"]}: {user_data["reason"]}')
-            
-            whatsapp = WhatsAppService()
-            
-            if user_data["reason"] == "subscription_expired":
-                # Assinatura expirada
-                await whatsapp.send_message(
-                    phone=phone_to_send,
-                    text=BaseErrors.user_expired_subscription(),
-                    session=session_name,
-                )
-            return
 
-        print(f'✅ Usuário {user_data["username"]} tem acesso autorizado')
+        print(f'✅ Usuário {user_data["username"]} encontrado')
 
         clean_phone = clean_whatsapp_phone(phone_to_send, remove_country_code=True)
         set_current_user_phone(clean_phone)
-        
+        set_current_user_id(user_data['user_id'])
 
-        set_current_user_id(user_data['user_id']) 
- 
         response = await process_message(message_normalized, clean_phone)
 
         if not response or not response.strip():
@@ -137,7 +102,6 @@ async def process_and_reply(user_phone: str, message: str, session_name: str):
         traceback.print_exc()
         print(f'{"=" * 60}\n')
 
-        # Envia mensagem de erro genérica para o usuário
         try:
             whatsapp = WhatsAppService()
             await whatsapp.send_message(
@@ -151,13 +115,7 @@ async def process_and_reply(user_phone: str, message: str, session_name: str):
 
 @router.post('/')
 async def webhook(data: WAHAWebhook, background_tasks: BackgroundTasks):
-    """
-    Endpoint para receber webhooks do WAHA.
-
-    Args:
-        data: Dados do webhook
-        background_tasks: Processamento em background
-    """
+    """Endpoint para receber webhooks do WAHA e processar mensagens."""
     if not data.is_valid_message():
         return {'status': 'ignored', 'reason': 'invalid message'}
 

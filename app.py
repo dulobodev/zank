@@ -11,7 +11,6 @@ from .routers import (
     gastos,
     metas,
     users,
-    stripe,
     webhook,
     
 )

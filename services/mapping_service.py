@@ -19,6 +19,8 @@ settings = Settings()
 
 
 class MappingService:
+    """Serviço para mapeamento de usuários e resolução de telefones."""
+    
     def __init__(
         self,
         api_url: str,
@@ -43,16 +45,7 @@ class MappingService:
         self,
         lid_identifier: str,
     ) -> Optional[str]:
-        """
-        Resolve um LID para um número de telefone usando a API do WAHA.
-
-        Args:
-            lid_identifier: O identificador LID (ex: '140084804370526@lid' ou
-                '140084804370526')
-
-        Returns:
-            O número de telefone no formato '@c.us' ou None se não encontrado
-        """
+        """Resolve um LID para um número de telefone usando a API do WAHA."""
         try:
             lid = extract_lid(lid_identifier)
 
@@ -74,17 +67,7 @@ class MappingService:
         self,
         phone: str,
     ) -> Optional[UUID]:
-        """
-        Busca o user_id pelo telefone. Se o identificador for um LID,
-        primeiro resolve para o número de telefone real.
-
-        Args:
-            phone: Número de telefone ou LID (ex: '5519992115781@c.us' ou
-                '140084804370526@lid')
-
-        Returns:
-            UUID do usuário ou None se não encontrado
-        """
+        """Busca o user_id pelo telefone, resolvendo LID se necessário."""
         try:
             if is_lid(phone):
                 print(
@@ -129,109 +112,63 @@ class MappingService:
             print(f'Erro ao buscar user_id: {e}')
             return None
 
-
-
     async def get_user(self, phone: str) -> Optional[dict]:
-            """
-            Busca o usuário COMPLETO com VERIFICAÇÃO DE ASSINATURA.
-            Usa o get_session_context() do seu database.py
-            """
-            try:
-                # Resolve LID se necessário
-                if is_lid(phone):
-                    print(f'Detectado LID: {phone}. Resolvendo para número de telefone...')
-                    resolved_phone = await self.resolve_phone_from_lid(phone)
-                    if not resolved_phone:
-                        print(f'❌ Não foi possível resolver o LID {phone}')
-                        return None
-                    phone = resolved_phone
-                    print(f'LID resolvido. Usando telefone: {phone}')
+        """Busca dados do usuário pelo telefone."""
+        try:
+            if is_lid(phone):
+                print(f'Detectado LID: {phone}. Resolvendo para número de telefone...')
+                resolved_phone = await self.resolve_phone_from_lid(phone)
+                if not resolved_phone:
+                    print(f'❌ Não foi possível resolver o LID {phone}')
+                    return None
+                phone = resolved_phone
+                print(f'LID resolvido. Usando telefone: {phone}')
+            
+            clean_phone = clean_whatsapp_phone(phone, remove_country_code=True)
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f'{self.api_url}/users/by-phone/{clean_phone}',
+                    headers=self.headers,
+                    timeout=10.0,
+                )
+                response.raise_for_status()
+                user_data = response.json()
+                print(f'✅ Dados do usuário via API: {user_data}')
+
+            user_id = UUID(user_data['id'])
+
+            async with get_session_context() as session:
+                user = await session.scalar(
+                    select(User).where(User.id == user_id)
+                )
                 
-                # Busca user_id básico via API
-                clean_phone = clean_whatsapp_phone(phone, remove_country_code=True)
-                async with httpx.AsyncClient() as client:
-                    response = await client.get(
-                        f'{self.api_url}/users/by-phone/{clean_phone}',
-                        headers=self.headers,
-                        timeout=10.0,
-                    )
-                    response.raise_for_status()
-                    user_data = response.json()
-                    print(f'✅ Dados do usuário via API: {user_data}')
-                
-                user_id = UUID(user_data['id'])
-                
-                # ← AGORA USA SEU get_session_context()
-                async with get_session_context() as session:
-                    # Busca usuário do banco
-                    user = await session.scalar(
-                        select(User).where(User.id == user_id)
-                    )
-                    
-                    if not user:
-                        print(f'❌ Usuário {user_id} não encontrado no banco')
-                        return None
-                    
-                    print(f'✅ Usuário carregado do banco: {user.username} (ID: {user.id})')
-                    
-                    # Verifica e atualiza assinatura
-                    now = datetime.utcnow()
-                    needs_update = False
-                    
-                    if user.subscription_active and user.subscription_expires_at:
-                        if user.subscription_expires_at < now:
-                            print(f'⚠️ Assinatura expirada: {user.username} - {user.subscription_expires_at}')
-                            user.subscription_active = False
-                            user.update_at = now
-                            needs_update = True
-                    
-                    if needs_update:
-                        session.add(user)
-                        await session.commit()
-                        await session.refresh(user)
-                        print(f'✅ Status de assinatura atualizado: {user.username}')
-                    
-                    # Verificação final de acesso
-                    if not user.subscription_active:
-                        print(f'🚫 Usuário {user.username} sem assinatura ativa')
-                        return {
-                            'id': str(user.id),
-                            'username': user.username,
-                            'email': user.email,
-                            'phone': user.phone,
-                            'subscription_active': False,
-                            'subscription_expires_at': user.subscription_expires_at.isoformat() if user.subscription_expires_at else None,
-                            'access_denied': True,
-                            'reason': 'subscription_expired'
-                        }
-                    
-                    # Retorna usuário com acesso válido
-                    print(f'✅ Usuário {user.username} tem assinatura ativa')
-                    return {
-                        'id': str(user.id),
-                        'username': user.username,
-                        'email': user.email,
-                        'phone': user.phone,
-                        'subscription_active': True,
-                        'subscription_expires_at': user.subscription_expires_at.isoformat() if user.subscription_expires_at else None,
-                        'access_denied': False,
-                        'user_id': user_id
-                    }
-                    
-            except httpx.HTTPStatusError as e:
-                print(f'❌ Erro HTTP ao buscar user: {e.response.status_code}')
-                return None
-            except Exception as e:
-                print(f'❌ Erro ao buscar user: {e}')
-                import traceback
-                traceback.print_exc()
-                return None
-        
+                if not user:
+                    print(f'❌ Usuário {user_id} não encontrado no banco')
+                    return None
+
+                print(f'✅ Usuário carregado do banco: {user.username} (ID: {user.id})')
+
+                return {
+                    'id': str(user.id),
+                    'username': user.username,
+                    'email': user.email,
+                    'phone': user.phone,
+                    'user_id': user_id
+                }
+
+        except httpx.HTTPStatusError as e:
+            print(f'❌ Erro HTTP ao buscar user: {e.response.status_code}')
+            return None
+        except Exception as e:
+            print(f'❌ Erro ao buscar user: {e}')
+            traceback.print_exc()
+            return None
 
     async def get_categoria_id_by_name(
         self,
         nome: str,
     ) -> Optional[UUID]:
+        """Busca o ID da categoria pelo nome, normalizando sinônimos."""
         nome_normalized = nome.lower().strip()
 
         categorias_map = {
@@ -307,6 +244,7 @@ class MappingService:
 
 
 def get_mapping_service() -> MappingService:
+    """Retorna instância singleton do MappingService."""
     if not hasattr(get_mapping_service, '_instance'):
         get_mapping_service._instance = MappingService(
             api_url='http://localhost:8000',
